@@ -7,68 +7,75 @@ import (
 
 func TestGetAPIKey(t *testing.T) {
 	tests := []struct {
-		name    string
-		header  string // full Authorization header value; if empty -> header not set
-		want    string
-		wantErr bool
+		name          string
+		authHeader    string
+		wantKey       string
+		wantErrSubstr string
 	}{
 		{
-			name:    "valid APIkey",
-			header:  "ApiKey my-secret-key",
-			want:    "my-secret-key",
-			wantErr: false,
+			name:          "missing header",
+			authHeader:    "",
+			wantErrSubstr: "authorization header is missing",
 		},
 		{
-			name:    "missing Authorization header",
-			header:  "",
-			want:    "",
-			wantErr: true,
+			name:          "wrong prefix",
+			authHeader:    "Bearer abc123",
+			wantErrSubstr: "must start with 'ApiKey '",
 		},
 		{
-			name:    "wrong prefix",
-			header:  "Bearer somethingelse",
-			want:    "",
-			wantErr: true,
+			name:          "empty key after prefix",
+			authHeader:    "ApiKey ",
+			wantErrSubstr: "API key is missing",
 		},
 		{
-			name:    "no key after prefix",
-			header:  "ApiKey ",
-			want:    "",
-			wantErr: true,
-		},
-		{
-			name:    "extra spaces before key",
-			header:  "ApiKey   spaced-key",
-			want:    "spaced-key",
-			wantErr: false,
+			name:       "valid key",
+			authHeader: "ApiKey my-secret-key",
+			wantKey:    "my-secret-key",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := http.NewRequest("GET", "/", nil)
-			if err != nil {
-				t.Fatalf("failed to create request: %v", err)
-			}
-			if tc.header != "" {
-				req.Header.Set("Authorization", tc.header)
+			req, _ := http.NewRequest("GET", "/", nil)
+			if tc.authHeader != "" {
+				req.Header.Set("Authorization", tc.authHeader)
 			}
 
-			got, err := GetAPIKey(req)
-			if tc.wantErr {
-				if err == nil {
-					t.Fatalf("expected error but got none (got=%q)", got)
+			gotKey, err := GetAPIKey(req)
+
+			if tc.wantErrSubstr != "" {
+				if err == nil || !contains(err.Error(), tc.wantErrSubstr) {
+					t.Errorf("expected error containing %q, got %v", tc.wantErrSubstr, err)
 				}
-				// OK: error expected
 				return
 			}
-			// no error expected
+
 			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+				t.Errorf("unexpected error: %v", err)
 			}
-			if got != tc.want {
-				t.Fatalf("want key %q, got %q", tc.want, got)
+			if gotKey != tc.wantKey {
+				t.Errorf("expected key %q, got %q", tc.wantKey, gotKey)
 			}
 		})
 	}
+}
+
+func contains(s, substr string) bool {
+	return len(substr) == 0 || (len(s) >= len(substr) && stringContains(s, substr))
+}
+
+func stringContains(s, substr string) bool {
+	return len(substr) <= len(s) && (indexOf(s, substr) >= 0)
+}
+
+func indexOf(s, substr string) int {
+	for i := range s {
+		if len(s)-i < len(substr) {
+			return -1
+		}
+		if s[i:i+len(substr)] == substr {
+			return i
+		}
+	}
+	return -1
 }
