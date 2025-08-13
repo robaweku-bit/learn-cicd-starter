@@ -30,6 +30,6 @@ func GetAPIKey(r *http.Request) (string, error) {
 		return "", errors.New("API key is missing after prefix")
 	}
 
-	return apiKey + "oops", nil
+	return apiKey, nil
 }
 
