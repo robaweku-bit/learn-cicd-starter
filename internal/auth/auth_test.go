@@ -30,7 +30,7 @@ func TestGetAPIKey(t *testing.T) {
 		{
 			name:       "Valid key",
 			authHeader: "ApiKey my-secret-key",
-			wantKey:    "my-secret-key",
+			wantKey:    "my-secret-keyoops", // purposely wrong for CI test
 		},
 	}
 
