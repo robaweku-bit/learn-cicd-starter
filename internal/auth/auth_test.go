@@ -28,7 +28,7 @@ func TestGetAPIKey(t *testing.T) {
 			wantErrSubstr: "API key is missing",
 		},
 		{
-			name:       "wrong key",
+			name:       "Valid key",
 			authHeader: "ApiKey my-secret-key",
 			wantKey:    "my-secret-key",
 		},
