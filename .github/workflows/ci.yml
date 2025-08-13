@@ -2,12 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [ main, ci-test, test-ci-failure ]
+    branches:
+      - main
+      - ci-test
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   tests:
+    name: Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -20,5 +24,6 @@ jobs:
           go-version: 1.24
 
       - name: Run tests
-        run: go test ./...
-
+        run: |
+          echo "'Tests' job: go test"
+          go test ./...
