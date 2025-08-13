@@ -5,18 +5,16 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Go
-        uses: actions/setup-go@v2
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.20' # or the version your project needs
+          go-version: '1.20' # Or whatever you use locally
 
       - name: Run tests
         run: go test ./...
 
-      - name: Print Go version
-        run: go version
